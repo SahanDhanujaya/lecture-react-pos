@@ -4,6 +4,7 @@ import { OrderContext } from "../../context/OrderContext";
 
 const ProductPage = () => {
   const { productArray} = useContext(OrderContext);
+  
   const [name, setName] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [price, setPrice] = useState<number>(0);
