@@ -1,9 +1,9 @@
-import { useState } from "react";
-import type { Product } from "../../types/Product";
+import { useContext, useState } from "react";
 import toast from "react-hot-toast";
+import { OrderContext } from "../../context/OrderContext";
 
 const ProductPage = () => {
-  const [productArray, setProductArray] = useState<Product[]>([]);
+  const { productArray} = useContext(OrderContext);
   const [name, setName] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [price, setPrice] = useState<number>(0);
@@ -19,7 +19,7 @@ const ProductPage = () => {
 
   const handleForm = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setProductArray((prev) => [...prev, { name, category, price, quantity }]);
+    productArray.push({ name, category, price, quantity });
     clearForm(e);
     toast.success("Product added successfully");
   };

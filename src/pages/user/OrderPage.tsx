@@ -1,4 +1,14 @@
+import { useContext, useEffect } from "react";
+import { OrderContext } from "../../context/OrderContext";
+
+
 const OrderPage = () => {
+const { customerArray  } = useContext(OrderContext);
+  
+useEffect(() => {
+  console.log(customerArray);
+}, [customerArray])
+
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold">Order Management</h1>

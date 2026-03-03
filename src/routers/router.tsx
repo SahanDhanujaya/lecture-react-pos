@@ -52,7 +52,7 @@ const router = createBrowserRouter([
             },
             {
                 path: '/user/settings',
-                element: <SettingPage />
+                element: <SettingPage avatar="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" />
             }
         ]
     }

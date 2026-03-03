@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import type { Customer } from "../../types/Customer";
 import toast from "react-hot-toast";
+import { OrderContext } from "../../context/OrderContext";
 
 const CustomerPage = () => {
-  const [customerArray, setCustomerArray] = useState<Customer[]>([]);
+  const { customerArray, setCustomer } = useContext(OrderContext);
+
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
   const [address, setAddress] = useState<string>("");
+  const [isUpdate, setIsUpdate] = useState<boolean>(false);
+  const [customerIndex, setCustomerIndex] = useState<number>(0);
 
   const clearForm = () => {
     setName("");
@@ -18,14 +22,45 @@ const CustomerPage = () => {
 
   const handleForm = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setCustomerArray((prev) => [...prev, {name, email, phone, address}]);
+    if (isUpdate) {
+      const updateCustomerArray: Customer[] = customerArray.map((customer, index) => {
+        if (index === customerIndex) {
+          customer.name = name;
+          customer.email = email;
+          customer.phone = phone;
+          customer.address = address;
+        }
+        return customer;
+      });
+      setCustomer(updateCustomerArray);
+    } else {
+      customerArray.push({ name, email, phone, address });
+    }
     clearForm();
-    toast.success("Customer added successfully");
+    toast.success(isUpdate ? "Customer updated successfully" : "Customer added successfully");
+    setIsUpdate(false);
+  }
+
+  const handleEdit = (index: number) => {
+    setCustomerIndex(index);
+    setIsUpdate(true);
+    const customer = customerArray[index];
+    setName(customer.name);
+    setEmail(customer.email);
+    setPhone(customer.phone);
+    setAddress(customer.address);
   }
 
   useEffect(() => {
     console.log(customerArray);
   }, [customerArray]);
+
+  function handleDelete(index: number): void {
+    const updatedCustomerArray = [...customerArray]; //6
+    updatedCustomerArray.splice(index, 1); // 5
+    setCustomer(updatedCustomerArray); // 5
+    toast.success("Customer deleted successfully");
+  }
 
   return (
     <div className="p-4">
@@ -69,7 +104,7 @@ const CustomerPage = () => {
               <div>
                 <button 
                 onClick={handleForm} className="btn btn-primary bg-black text-white rounded text-sm p-2 mt-2 cursor-pointer">
-                  Add Customer
+                  {isUpdate ? "Update" : "Add"}
                 </button>
                 <button onClick={clearForm} className="btn btn-secondary bg-gray-600 text-white rounded text-sm p-2 mt-2 ml-2 cursor-pointer">
                   Clear
@@ -94,6 +129,9 @@ const CustomerPage = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Address
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -105,6 +143,14 @@ const CustomerPage = () => {
                     <td className="px-6 py-4">{customer.email}</td>
                     <td className="px-6 py-4">{customer.phone}</td>
                     <td className="px-6 py-4">{customer.address}</td>
+                    <td className="px-6 py-4">
+                      <button onClick={() => handleEdit(index)} className="btn btn-primary bg-black text-white rounded text-sm p-2 mt-2 cursor-pointer">
+                        Edit
+                      </button>
+                      <button onClick={() => handleDelete(index)} className="btn btn-secondary bg-red-600 text-white rounded text-sm p-2 mt-2 ml-2 cursor-pointer">
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))
               }

@@ -1,13 +1,20 @@
+import { useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { ThemeContext } from "../context/ThemeContext";
 
 const Navbar = () => {
+    const { theme, toggleTheme} = useContext(ThemeContext);    
     const navItems = [
         { name: 'Home', path: '/home' },
         { name: 'Products', path: '/products' },
         { name: 'Contact', path: '/contact' }
     ]
+
+    useEffect(() => {
+        console.log(theme)
+    }, [theme])
     return (
-        <nav className="bg-gray-800 text-white p-4 flex items-center justify-between">
+        <nav className={ theme === "light" ? "bg-white text-black flex justify-between items-center p-4 shadow " : "bg-gray-800 text-white flex justify-between items-center p-4 " }>
                 <h1 className="text-xl">logo</h1>
                 <ul className="flex space-x-4">
                     {navItems.map((item) => (
@@ -16,6 +23,7 @@ const Navbar = () => {
                 
                 </ul>
                 <button className="rounded bg-gray-600 text-white px-4 py-2"><Link to="/user">Dashboard</Link></button>
+                <button className="rounded bg-gray-600 text-white px-4 py-2" onClick={toggleTheme}>Change Theme</button>
         </nav>
     )
 }
