@@ -25,7 +25,6 @@ interface Order {
 
 const OrderPage = () => {
   const { customerArray, productArray } = useContext(OrderContext);
-
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
@@ -33,15 +32,46 @@ const OrderPage = () => {
   const [discount, setDiscount] = useState<number>(0);
   const [discountType, setDiscountType] = useState<string>("fixed");
   const [price, setPrice] = useState<number>(0);
-  
+
   // orderArray stores completed Order objects
   const [orderArray, setOrderArray] = useState<Order[]>([]);
 
   const addToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+
     if (customer && product && qty > 0) {
-      const newItem: CartItem = { customer, product, qty, discount, discountType, price };
-      setCart([...cart, newItem]);
+      // 1. Check if the product is already in the cart
+      const existingItemIndex = cart.findIndex(
+        (item) => item.product.name === product.name,
+      );
+
+      if (existingItemIndex !== -1) {
+        // 2. If it exists, create a new array with the updated quantity
+        const updatedCart = cart.map((item, index) => {
+          if (index === existingItemIndex) {
+            return {
+              ...item,
+              qty: item.qty + qty,
+              // You might want to update the price/discount here too if they changed
+            };
+          }
+          return item;
+        });
+        setCart(updatedCart);
+      } else {
+        // 3. If it's new, add it as a fresh CartItem
+        const newItem: CartItem = {
+          customer,
+          product,
+          qty,
+          discount,
+          discountType,
+          price,
+        };
+        setCart([...cart, newItem]);
+      }
+
+      // Reset quantity only (usually we keep customer/product selected for bulk entry)
       setQty(0);
     } else {
       alert("Please select a customer, product, and quantity");
@@ -49,7 +79,9 @@ const OrderPage = () => {
   };
 
   const handleRemoveItem = (indexToRemove: number) => {
-    setCart((prevCart) => prevCart.filter((_, index) => index !== indexToRemove));
+    setCart((prevCart) =>
+      prevCart.filter((_, index) => index !== indexToRemove),
+    );
   };
 
   const calculateItemTotal = (item: CartItem) => {
@@ -82,18 +114,24 @@ const OrderPage = () => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <h1 className="text-xl font-bold mb-4">Order Management</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Form Section */}
         <form className="grid grid-cols-2 gap-3 shadow rounded-lg p-4 bg-white h-fit">
           <select
             className="col-span-2 p-2 rounded-md border border-gray-300"
-            onChange={(e) => setCustomer(customerArray[parseInt(e.target.value)])}
+            onChange={(e) =>
+              setCustomer(customerArray[parseInt(e.target.value)])
+            }
             defaultValue=""
           >
-            <option value="" disabled>Select a customer</option>
+            <option value="" disabled>
+              Select a customer
+            </option>
             {customerArray.map((cust, index) => (
-              <option key={index} value={index}>{cust.name}</option>
+              <option key={index} value={index}>
+                {cust.name}
+              </option>
             ))}
           </select>
 
@@ -102,9 +140,13 @@ const OrderPage = () => {
             onChange={(e) => setProduct(productArray[parseInt(e.target.value)])}
             defaultValue=""
           >
-            <option value="" disabled>Select a product</option>
+            <option value="" disabled>
+              Select a product
+            </option>
             {productArray.map((prod, index) => (
-              <option key={index} value={index}>{prod.name}</option>
+              <option key={index} value={index}>
+                {prod.name}
+              </option>
             ))}
           </select>
 
@@ -142,21 +184,30 @@ const OrderPage = () => {
             </select>
           </div>
 
-          <button onClick={addToCart} className="col-span-2 bg-black text-white rounded p-2 mt-2 font-bold">
+          <button
+            onClick={addToCart}
+            className="col-span-2 bg-black text-white rounded p-2 mt-2 font-bold"
+          >
             Add to cart
           </button>
         </form>
 
         {/* Scrollable Cart Summary */}
-        <div className="shadow rounded-lg p-4 bg-white flex flex-col h-[400px]">
+        <div className="shadow rounded-lg p-4 bg-white flex flex-col h-100">
           <h1 className="text-md font-bold mb-2">Product Summary</h1>
           <div className="grow overflow-y-auto border border-gray-100 rounded">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    Product
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    Qty
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    Total
+                  </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"></th>
                 </tr>
               </thead>
@@ -181,7 +232,10 @@ const OrderPage = () => {
           {cart.length > 0 && (
             <div className="mt-4 pt-2 border-t flex justify-between items-center">
               <span className="font-bold">Items: {cart.length}</span>
-              <button onClick={handleCheckout} className="bg-green-600 text-white rounded px-4 py-2 hover:bg-green-700 transition-colors font-bold">
+              <button
+                onClick={handleCheckout}
+                className="bg-green-600 text-white rounded px-4 py-2 hover:bg-green-700 transition-colors font-bold"
+              >
                 Checkout
               </button>
             </div>
@@ -196,18 +250,30 @@ const OrderPage = () => {
           <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Order ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Customer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Time
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Total
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {orderArray.map((order) => (
                 <tr key={order.id}>
                   <td className="px-6 py-4 text-sm">#{order.id}</td>
-                  <td className="px-6 py-4 text-sm font-medium">{order.customerName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{order.date}</td>
+                  <td className="px-6 py-4 text-sm font-medium">
+                    {order.customerName}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {order.date}
+                  </td>
                   <td className="px-6 py-4 text-sm font-bold text-green-700">
                     ${order.totalAmount.toFixed(2)}
                   </td>
@@ -215,7 +281,9 @@ const OrderPage = () => {
               ))}
               {orderArray.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="text-center py-6 text-gray-400">No orders placed yet.</td>
+                  <td colSpan={4} className="text-center py-6 text-gray-400">
+                    No orders placed yet.
+                  </td>
                 </tr>
               )}
             </tbody>
