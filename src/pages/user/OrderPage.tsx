@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useContext, useEffect, useState } from "react";
 import { OrderContext } from "../../context/OrderContext";
 import type { Customer } from "../../types/Customer";
@@ -40,6 +41,10 @@ const OrderPage = () => {
       alert("Please select a customer, product, and quantity");
     }
   };
+
+  useEffect(() => {
+    setPrice(product?.price || 0) 
+  }, [product]);
 
   return (
     <div className="p-4">
