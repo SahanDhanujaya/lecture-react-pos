@@ -3,9 +3,14 @@ import { useContext, useEffect, useState } from "react";
 import { OrderContext } from "../../context/OrderContext";
 import type { Customer } from "../../types/Customer";
 import type { Product } from "../../types/Product";
+import { IoRemoveCircle } from "react-icons/io5";
+import type { Order } from "../../types/Order";
+
+
 
 // Define the Cart Item Type for better clarity
-interface CartItem {
+interface CartItem
+  {
   customer: Customer;
   product: Product;
   qty: number;
@@ -26,6 +31,7 @@ const OrderPage = () => {
   const [discount, setDiscount] = useState<number>(0);
   const [discountType, setDiscountType] = useState<string>("fixed");
   const [price, setPrice] = useState<number>(0);
+  const [orderArray , setOrderArray] = useState<CartItem[]| null>([])
 
   const addToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -42,9 +48,33 @@ const OrderPage = () => {
     }
   };
 
+  // setting up the product summary
   useEffect(() => {
     setPrice(product?.price || 0) 
   }, [product]);
+
+
+ const removeRecord = (index: number)=>{
+
+    const updatedCart = cart.filter((_,i) => i !==index);
+    setCart(updatedCart);
+
+  };
+
+  //setting the ultimate price after the discount (Fixed)
+
+  useEffect(() =>{
+      // const updated
+  })
+
+ const handleOrders =()=>{
+
+  setOrderArray(
+    cart
+  )
+   
+ }
+
 
   return (
     <div className="p-4">
@@ -126,6 +156,8 @@ const OrderPage = () => {
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remove</th>
+
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -135,8 +167,16 @@ const OrderPage = () => {
                   <td className="px-4 py-2 text-sm">{item.qty}</td>
                   <td className="px-4 py-2 text-sm">${item.price}</td>
                   <td className="px-4 py-2 text-sm font-bold">
-                    ${item.qty * item.price}
+
+
+
+                 {item.discountType === "fixed"
+                        ? item.qty * item.price - item.discount
+                        : item.qty * item.price * (1 - item.discount / 100)
+                      }
+                    
                   </td>
+                  <td className="px-4 py-2  "> <button onClick={()=>removeRecord(index)} ><IoRemoveCircle /></button></td>
                 </tr>
               ))}
               {cart.length === 0 && (
@@ -145,11 +185,14 @@ const OrderPage = () => {
                 </tr>
               )}
             </tbody>
+
+           
           </table>
+
           
           {cart.length > 0 && (
             <div className="flex justify-end mt-4">
-              <button className="bg-black text-white rounded p-2">Checkout</button>
+              <button className="bg-black text-white rounded p-2" onClick={handleOrders}>Checkout</button>
             </div>
           )}
         </div>
@@ -167,20 +210,41 @@ const OrderPage = () => {
                   <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
                     Customer
                   </th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
                     Product
-                  </th>
-                  <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  </th> */}
+                  {/* <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
                     Quantity
-                  </th>
+                  </th> */}
                   <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
                     Total
                   </th>
                 </tr>
+              
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {
-                  
+                  orderArray?.map((item, index)=>(
+                    <tr>
+
+                      <td>
+                        {index+1}
+                      </td>
+
+
+                      <td>{item.customer.name}</td>
+
+
+
+                      <td>
+                    {item.discountType === "fixed"
+                        ? item.qty * item.price - item.discount
+                        : item.qty * item.price * (1 - item.discount / 100)
+                      }</td>
+
+                      
+                    </tr>
+                  ))
                 }
               </tbody>
             </table>
