@@ -3,7 +3,7 @@ import { createProduct, getProducts, updateProduct, deleteProduct } from "../ser
 
 export const addProduct = async (req: Request, res: Response) => {
     const newProduct = await createProduct(req.body);
-    res.status(200).json({message: "Product added successfully", newProduct});
+    res.status(201).json({message: "Product added successfully", newProduct});
 }
 
 export const getProductList = async (req: Request, res: Response) => {
@@ -13,7 +13,7 @@ export const getProductList = async (req: Request, res: Response) => {
 
 export const updateProductById = async (req: Request, res: Response) => {
     const updatedProduct = await updateProduct(req.params.id as string , req.body);
-    res.status(200).json({message: "Product updated successfully", updatedProduct});
+    res.status(201).json({message: "Product updated successfully", updatedProduct});
 }
 
 export const deleteProductById = async (req: Request, res: Response) => {

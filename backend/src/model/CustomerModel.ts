@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import { type Customer } from "../types/customer.ts";
 
-const CustomerSchema = new mongoose.Schema({
+const CustomerSchema = new mongoose.Schema<Customer>({
     name: String,
     email: String,
     phone: String,

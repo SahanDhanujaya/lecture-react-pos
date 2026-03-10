@@ -14,7 +14,7 @@ export const getCustomerList = async (req: Request, res: Response) => {
 
 export const updateCustomerById = async (req: Request, res: Response) => {
     const updatedCustomer = await updateCustomer(req.params.id as string , req.body);
-    res.status(200).json({message: "Customer updated successfully", updatedCustomer});
+    res.status(201).json({message: "Customer updated successfully", updatedCustomer});
 }
 
 export const deleteCustomerById = async (req: Request, res: Response) => {
