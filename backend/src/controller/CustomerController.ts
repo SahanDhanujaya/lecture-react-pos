@@ -3,8 +3,8 @@ import type { Request, Response } from "express";
 import { createCustomer, getCustomers, updateCustomer, deleteCustomer } from "../service/CustomerService.ts";
 
 export const addCustomer = async (req: Request, res: Response) => {
-    await createCustomer(req.body);
-    res.status(201).json({ message: "Customer created successfully" });
+    const newCustomer = await createCustomer(req.body);
+    res.status(201).json({ message: "Customer created successfully", newCustomer });
 }
 
 export const getCustomerList = async (req: Request, res: Response) => {

@@ -15,6 +15,8 @@ app.use("/api", customerRoutes)
 app.use("/api", productRouter) 
 app.use("/api", orderRoutes)
 
-app.listen(5000, () => {
-  console.log("Server is running on port 5000");
+const PORT = 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

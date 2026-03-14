@@ -1,10 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from "react";
 import type { Customer } from "../../types/Customer";
 import toast from "react-hot-toast";
-import { OrderContext } from "../../context/OrderContext";
+import axios from "axios";
 
 const CustomerPage = () => {
-  const { customerArray, setCustomer } = useContext(OrderContext);
 
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -12,60 +13,106 @@ const CustomerPage = () => {
   const [address, setAddress] = useState<string>("");
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
   const [customerIndex, setCustomerIndex] = useState<number>(0);
+  const [data, setData] = useState<Customer[]>([]);
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const clearForm = () => {
     setName("");
     setEmail("");
     setPhone("");
     setAddress("");
-  }
+  };
 
-  const handleForm = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleForm = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (isUpdate) {
-      const updateCustomerArray: Customer[] = customerArray.map((customer, index) => {
-        if (index === customerIndex) {
-          customer.name = name;
-          customer.email = email;
-          customer.phone = phone;
-          customer.address = address;
+      const updateCustomerArray: Customer[] = data.map(
+        (customer, index) => {
+          if (index === customerIndex) {
+            customer.name = name;
+            customer.email = email;
+            customer.phone = phone;
+            customer.address = address;
+          }
+          return customer;
+        },
+      );
+      try {
+        const response = await axios.put(`${BASE_URL}/customers/${data[customerIndex]._id}`, updateCustomerArray[customerIndex], 
+        {
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+        if (response.status === 201) {
+          getCustomers();
         }
-        return customer;
-      });
-      setCustomer(updateCustomerArray);
+      } catch (error) {
+        toast.error("Error updating customer " + error);
+      }
     } else {
-      customerArray.push({ name, email, phone, address });
+      try {
+        const newCustomer: Customer = { name, email, phone, address };
+        await axios.post(`${BASE_URL}/customers`, newCustomer,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ).then((response) => {
+        if (response.status === 201) {
+          getCustomers();
+        }
+      });
+      } catch (error) {
+        toast.error("Error adding customer " + error);
+      }
     }
     clearForm();
-    toast.success(isUpdate ? "Customer updated successfully" : "Customer added successfully");
+    toast.success(
+      isUpdate
+        ? "Customer updated successfully"
+        : "Customer added successfully",
+    );
     setIsUpdate(false);
-  }
+  };
 
   const handleEdit = (index: number) => {
     setCustomerIndex(index);
     setIsUpdate(true);
-    const customer = customerArray[index];
+    const customer = data[index];
     setName(customer.name);
     setEmail(customer.email);
     setPhone(customer.phone);
     setAddress(customer.address);
+  };
+
+  async function handleDelete(index: number) {
+    try {
+      await axios.delete(`${BASE_URL}/customers/${data[index]._id}`)
+      .then((response) => {
+        if (response.status === 200) {
+          toast.success("Customer deleted successfully");
+          getCustomers();
+        }
+      });
+    } catch (error) {
+      toast.error("Error deleting customer " + error);
+    }
   }
 
-  const [data, setData] = useState([]);
+  const getCustomers = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/customers`);
+      setData(response.data);
+    } catch (error) {
+      toast.error("Error fetching customers " + error);
+    }
+  };
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/data")
-      .then(res => res.json())
-      .then(json => setData(json));
-      console.log(data);
-  }, [data]);
-
-  function handleDelete(index: number): void {
-    const updatedCustomerArray = [...customerArray]; //6
-    updatedCustomerArray.splice(index, 1); // 5
-    setCustomer(updatedCustomerArray); // 5
-    toast.success("Customer deleted successfully");
-  }
+    getCustomers();
+  }, []);
 
   return (
     <div className="p-4">
@@ -107,11 +154,16 @@ const CustomerPage = () => {
                 onChange={(e) => setAddress(e.target.value)}
               />
               <div>
-                <button 
-                onClick={handleForm} className="btn btn-primary bg-black text-white rounded text-sm p-2 mt-2 cursor-pointer">
+                <button
+                  onClick={handleForm}
+                  className="btn btn-primary bg-black text-white rounded text-sm p-2 mt-2 cursor-pointer"
+                >
                   {isUpdate ? "Update" : "Add"}
                 </button>
-                <button onClick={clearForm} className="btn btn-secondary bg-gray-600 text-white rounded text-sm p-2 mt-2 ml-2 cursor-pointer">
+                <button
+                  onClick={clearForm}
+                  className="btn btn-secondary bg-gray-600 text-white rounded text-sm p-2 mt-2 ml-2 cursor-pointer"
+                >
                   Clear
                 </button>
               </div>
@@ -140,25 +192,28 @@ const CustomerPage = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {/* Sample customer data */}
-              {
-                customerArray.map((customer, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4">{customer.name}</td>
-                    <td className="px-6 py-4">{customer.email}</td>
-                    <td className="px-6 py-4">{customer.phone}</td>
-                    <td className="px-6 py-4">{customer.address}</td>
-                    <td className="px-6 py-4">
-                      <button onClick={() => handleEdit(index)} className="btn btn-primary bg-black text-white rounded text-sm p-2 mt-2 cursor-pointer">
-                        Edit
-                      </button>
-                      <button onClick={() => handleDelete(index)} className="btn btn-secondary bg-red-600 text-white rounded text-sm p-2 mt-2 ml-2 cursor-pointer">
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              }
+              {data.map((customer, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4">{customer.name}</td>
+                  <td className="px-6 py-4">{customer.email}</td>
+                  <td className="px-6 py-4">{customer.phone}</td>
+                  <td className="px-6 py-4">{customer.address}</td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleEdit(index)}
+                      className="btn btn-primary bg-black text-white rounded text-sm p-2 mt-2 cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(index)}
+                      className="btn btn-secondary bg-red-600 text-white rounded text-sm p-2 mt-2 ml-2 cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
