@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import axios from "axios";
 
 const CustomerPage = () => {
-
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
@@ -26,24 +25,25 @@ const CustomerPage = () => {
   const handleForm = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (isUpdate) {
-      const updateCustomerArray: Customer[] = data.map(
-        (customer, index) => {
-          if (index === customerIndex) {
-            customer.name = name;
-            customer.email = email;
-            customer.phone = phone;
-            customer.address = address;
-          }
-          return customer;
-        },
-      );
+      const updateCustomerArray: Customer[] = data.map((customer, index) => {
+        if (index === customerIndex) {
+          customer.name = name;
+          customer.email = email;
+          customer.phone = phone;
+          customer.address = address;
+        }
+        return customer;
+      });
       try {
-        const response = await axios.put(`${BASE_URL}/customers/${data[customerIndex]._id}`, updateCustomerArray[customerIndex], 
-        {
-          headers: {
-            "Content-Type": "application/json",
-          }
-        });
+        const response = await axios.put(
+          `${BASE_URL}/customers/${data[customerIndex]._id}`,
+          updateCustomerArray[customerIndex],
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
         if (response.status === 201) {
           getCustomers();
         }
@@ -53,17 +53,17 @@ const CustomerPage = () => {
     } else {
       try {
         const newCustomer: Customer = { name, email, phone, address };
-        await axios.post(`${BASE_URL}/customers`, newCustomer,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      ).then((response) => {
-        if (response.status === 201) {
-          getCustomers();
-        }
-      });
+        await axios
+          .post(`${BASE_URL}/customers`, newCustomer, {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+          .then((response) => {
+            if (response.status === 201) {
+              getCustomers();
+            }
+          });
       } catch (error) {
         toast.error("Error adding customer " + error);
       }
@@ -89,13 +89,14 @@ const CustomerPage = () => {
 
   async function handleDelete(index: number) {
     try {
-      await axios.delete(`${BASE_URL}/customers/${data[index]._id}`)
-      .then((response) => {
-        if (response.status === 200) {
-          toast.success("Customer deleted successfully");
-          getCustomers();
-        }
-      });
+      await axios
+        .delete(`${BASE_URL}/customers/${data[index]._id}`)
+        .then((response) => {
+          if (response.status === 200) {
+            toast.success("Customer deleted successfully");
+            getCustomers();
+          }
+        });
     } catch (error) {
       toast.error("Error deleting customer " + error);
     }

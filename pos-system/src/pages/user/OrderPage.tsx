@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useContext, useEffect, useState } from "react";
-import { OrderContext } from "../../context/OrderContext";
+import { useEffect, useState } from "react";
 import type { Customer } from "../../types/Customer";
 import type { Product } from "../../types/Product";
 import { IoIosRemoveCircleOutline } from "react-icons/io";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 interface CartItem {
   customer: Customer;
@@ -24,7 +25,6 @@ interface Order {
 }
 
 const OrderPage = () => {
-  const { customerArray, productArray } = useContext(OrderContext);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
@@ -32,6 +32,9 @@ const OrderPage = () => {
   const [discount, setDiscount] = useState<number>(0);
   const [discountType, setDiscountType] = useState<string>("fixed");
   const [price, setPrice] = useState<number>(0);
+  const [customers,  setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   // orderArray stores completed Order objects
   const [orderArray, setOrderArray] = useState<Order[]>([]);
@@ -90,7 +93,7 @@ const OrderPage = () => {
       : item.qty * item.price * (1 - item.discount / 100);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) return;
 
     const total = cart.reduce((sum, item) => sum + calculateItemTotal(item), 0);
@@ -103,12 +106,63 @@ const OrderPage = () => {
       date: new Date().toLocaleTimeString(),
     };
 
-    setOrderArray((prev) => [...prev, newOrder]);
+    try {
+      await axios.post(`${BASE_URL}/orders`, newOrder)
+      .then((response) => {
+        if (response.status === 201) {
+          toast.success("Order created successfully");
+          loadOrders();
+        }
+      });
+      setOrderArray([...orderArray, newOrder]);
+    } catch (error) {
+      toast.error("Error creating order " + error);
+    }
     setCart([]); // Clear the cart
   };
 
+  const loadCustomers = async () => {
+    try {
+      await axios.get(`${BASE_URL}/customers`).then((response) => {
+        setCustomers(response.data);
+      });
+    } catch (error) {
+      toast.error("Error loading customers " + error);
+    }
+  };
+  
+  const loadProducts = async () => {
+    try {
+      await axios.get(`${BASE_URL}/products`).then((response) => {
+        setProducts(response.data);
+        
+      });
+    } catch (error) {
+      toast.error("Error loading products " + error);
+    }
+  };
+
+  const loadOrders = async () => {
+    try {
+      await axios.get(`${BASE_URL}/orders`).then((response) => {
+        setOrderArray(response.data);
+      });
+    } catch (error) {
+      toast.error("Error loading orders " + error);
+    }
+  };
+
   useEffect(() => {
-    setPrice(product?.price || 0);
+    loadCustomers();
+    loadProducts();
+    loadOrders();
+  }, []);
+
+  useEffect(() => {
+    console.log(product);
+    if (product) {
+      setPrice(product?.price || 0);
+    }
   }, [product]);
 
   return (
@@ -121,14 +175,14 @@ const OrderPage = () => {
           <select
             className="col-span-2 p-2 rounded-md border border-gray-300"
             onChange={(e) =>
-              setCustomer(customerArray[parseInt(e.target.value)])
+              setCustomer(customers[parseInt(e.target.value)])
             }
             defaultValue=""
           >
             <option value="" disabled>
               Select a customer
             </option>
-            {customerArray.map((cust, index) => (
+            {customers.map((cust, index) => (
               <option key={index} value={index}>
                 {cust.name}
               </option>
@@ -137,13 +191,14 @@ const OrderPage = () => {
 
           <select
             className="col-span-2 p-2 rounded-md border border-gray-300"
-            onChange={(e) => setProduct(productArray[parseInt(e.target.value)])}
+            onChange={(e) => setProduct(products[parseInt(e.target.value)])}
             defaultValue=""
+
           >
             <option value="" disabled>
               Select a product
             </option>
-            {productArray.map((prod, index) => (
+            {products.map((prod, index) => (
               <option key={index} value={index}>
                 {prod.name}
               </option>

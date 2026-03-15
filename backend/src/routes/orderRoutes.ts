@@ -4,6 +4,6 @@ import { placeOrder, getOrderList } from '../controller/OrderController.ts';
 const orderRoutes = express.Router();
 
 orderRoutes.post("/orders", placeOrder);
-orderRoutes.get("/orders/:id", getOrderList);
+orderRoutes.get("/orders", getOrderList);
 
 export default orderRoutes;
